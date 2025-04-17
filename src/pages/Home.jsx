@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import SignalCard from '../components/SignalCard';
 import TraderRanking from '../components/TraderRanking';
@@ -10,14 +10,21 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function Home() {
   const { walletAddress } = useWalletContext();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  const referralParam = searchParams.get('ref');
 
   const registerWallet = async (address) => {
     if (!address) return;
+
     try {
+      const ref = referralParam || null;
+
       await setDoc(doc(db, "wallets", address), {
         wallet: address,
         createdAt: serverTimestamp(),
+        referral: ref,
         totalSignalsReceived: 0,
         totalCopied: 0
       }, { merge: true });
