@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Leaderboard from './pages/Leaderboard';
-import Premium from './pages/Premium'; // novo
+import Premium from './pages/Premium';
+import TopWallets from './pages/TopWallets'; // novo
 
 function App() {
   return (
@@ -13,7 +14,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/premium" element={<Premium />} /> {/* novo */}
+          <Route path="/premium" element={<Premium />} />
+          <Route path="/top-wallets" element={<TopWallets />} /> {/* novo */}
         </Routes>
       </div>
     </Router>
