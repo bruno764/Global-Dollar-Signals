@@ -9,6 +9,7 @@ export default function Navbar() {
       <div className="flex items-center gap-6 text-sm">
         <Link to="/dashboard" className="text-white hover:text-green-400 transition">Dashboard</Link>
         <Link to="/leaderboard" className="text-white hover:text-yellow-400 transition">Leaderboard</Link>
+        <Link to="/premium" className="text-white hover:text-purple-400 transition">Premium</Link> {/* novo */}
       </div>
     </nav>
   );
