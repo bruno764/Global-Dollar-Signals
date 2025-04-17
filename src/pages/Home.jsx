@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import SignalCard from '../components/SignalCard';
 import TraderRanking from '../components/TraderRanking';
@@ -9,6 +10,7 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function Home() {
   const { walletAddress } = useWalletContext();
+  const navigate = useNavigate();
 
   const registerWallet = async (address) => {
     if (!address) return;
@@ -44,6 +46,14 @@ export default function Home() {
           Earn smarter. Follow the real winners.
         </p>
         <WalletButton />
+        {walletAddress && (
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="mt-6 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl text-lg shadow-lg transition-all"
+          >
+            Go to Dashboard
+          </button>
+        )}
       </section>
 
       <section className="py-8 px-4 md:px-10">
