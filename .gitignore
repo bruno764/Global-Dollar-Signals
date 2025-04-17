@@ -1,0 +1,13 @@
+# Ignorar dependências
+node_modules/
+package-lock.json
+
+# Ambientes sensíveis
+.env
+
+# Build
+dist/
+
+# VSCode e sistema
+.vscode/
+.DS_Store
