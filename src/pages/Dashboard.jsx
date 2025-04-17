@@ -8,7 +8,9 @@ export default function Dashboard() {
   const [signals, setSignals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roi, setRoi] = useState(0);
+  const [referrals, setReferrals] = useState(0);
 
+  // Buscar sinais recebidos pela carteira
   const fetchSignals = async () => {
     if (!walletAddress) return;
 
@@ -26,17 +28,35 @@ export default function Dashboard() {
     }
   };
 
+  // Buscar quantas pessoas essa carteira indicou
+  const fetchReferrals = async () => {
+    if (!walletAddress) return;
+
+    try {
+      const q = query(collection(db, "wallets"), where("referral", "==", walletAddress));
+      const snapshot = await getDocs(q);
+      setReferrals(snapshot.docs.length);
+    } catch (error) {
+      console.error("Erro ao buscar referidos:", error);
+    }
+  };
+
+  // Simular ROI com bônus
   const simulateROI = (data) => {
     let total = 0;
     data.forEach(signal => {
-      const variation = Math.random() * 0.3 - 0.1; // simula -10% a +20%
+      const variation = Math.random() * 0.3 - 0.1; // -10% a +20%
       total += signal.volume * variation;
     });
-    setRoi(total.toFixed(2));
+    const bonus = referrals * 0.1;
+    setRoi((total + bonus).toFixed(2));
   };
 
   useEffect(() => {
-    if (walletAddress) fetchSignals();
+    if (walletAddress) {
+      fetchSignals();
+      fetchReferrals();
+    }
   }, [walletAddress]);
 
   return (
@@ -44,8 +64,15 @@ export default function Dashboard() {
       <h1 className="text-3xl font-bold text-blue-400 mb-4">📊 Dashboard</h1>
       {walletAddress ? (
         <>
-          <p className="mb-4 text-lg">🔐 Connected wallet: <span className="text-green-400">{walletAddress}</span></p>
-          <p className="mb-4 text-lg">💰 Simulated ROI: <span className={roi >= 0 ? "text-green-400" : "text-red-400"}>{roi} SOL</span></p>
+          <p className="mb-4 text-lg">
+            🔐 Connected wallet: <span className="text-green-400">{walletAddress}</span>
+          </p>
+          <p className="mb-2 text-lg">
+            💰 Simulated ROI: <span className={roi >= 0 ? "text-green-400" : "text-red-400"}>{roi} SOL</span>
+          </p>
+          <p className="mb-6 text-md text-yellow-300">
+            🔗 Referrals: {referrals} (+{(referrals * 0.1).toFixed(2)} SOL bonus)
+          </p>
 
           <h2 className="text-2xl font-semibold text-yellow-400 mt-6 mb-2">📥 Signals received</h2>
           {loading ? (
