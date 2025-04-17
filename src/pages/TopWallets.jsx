@@ -6,7 +6,7 @@ export default function TopWallets() {
 
   const fetchWallets = async () => {
     try {
-      const res = await fetch("https://seu-proxy.railway.app/api/top-wallets");
+      const res = await fetch("https://global-dollar-signals-production.up.railway.app/api/top-wallets");
       const data = await res.json();
       const parsed = data.slice(0, 6).map((pair, index) => ({
         token: pair.baseToken.symbol,
