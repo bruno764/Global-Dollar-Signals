@@ -1,0 +1,15 @@
+{
+    "build": {
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    "rewrites": [
+      { "source": "/(.*)", "destination": "/" }
+    ],
+    "routes": [
+      { "src": "/(.*)", "dest": "/" }
+    ],
+    "outputDirectory": "dist"
+  }
+  
