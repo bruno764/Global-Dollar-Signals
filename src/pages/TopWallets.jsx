@@ -6,23 +6,20 @@ export default function TopWallets() {
 
   const fetchWallets = async () => {
     try {
-      const res = await fetch("https://api.dexscreener.com/latest/dex/pairs/solana");
+      const res = await fetch("https://seu-proxy.railway.app/api/top-wallets");
       const data = await res.json();
-      const pairs = data.pairs.slice(0, 6); // top 6 tokens mais ativos
-
-      const parsed = pairs.map((pair, index) => ({
+      const parsed = data.slice(0, 6).map((pair, index) => ({
         token: pair.baseToken.symbol,
         address: pair.pairAddress,
-        roi: `+${(Math.random() * 2).toFixed(2)}`, // simulação de ROI
+        roi: `+${(Math.random() * 2).toFixed(2)}`,
         source: 'dexscreener',
         buyers: pair.txns?.m5?.buys || 0,
         price: pair.priceUsd,
         volume: pair.volume.h24
       }));
-
       setWallets(parsed);
     } catch (err) {
-      console.error("Erro ao buscar Dexscreener:", err);
+      console.error("Erro ao buscar via proxy:", err);
     } finally {
       setLoading(false);
     }
