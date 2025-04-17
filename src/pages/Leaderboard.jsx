@@ -70,6 +70,9 @@ export default function Leaderboard() {
               </div>
               <div>
                 <p className="text-lg font-semibold text-blue-300">{shortenWallet(w.wallet)}</p>
+                {w.isPremium && (
+                  <p className="text-xs text-purple-400 font-bold mt-1">⭐ Premium</p>
+                )}
                 <p className="text-sm text-gray-400">Signals: {w.totalSignalsReceived || 0}</p>
               </div>
             </div>
@@ -92,6 +95,9 @@ export default function Leaderboard() {
               </div>
               <div>
                 <p className="text-lg font-semibold text-pink-300">{shortenWallet(w.wallet)}</p>
+                {w.isPremium && (
+                  <p className="text-xs text-purple-400 font-bold mt-1">⭐ Premium</p>
+                )}
                 <p className="text-sm text-gray-400">Referrals: {w.referrals}</p>
               </div>
             </div>
