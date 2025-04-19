@@ -1,5 +1,4 @@
-// src/pages/Login.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -16,15 +15,15 @@ export default function Login() {
   const waitForWallet = async () => {
     let tries = 0;
     while (!walletAddress && tries < 10) {
-      await new Promise((res) => setTimeout(res, 200));
+      await new Promise((res) => setTimeout(res, 300));
       tries++;
     }
   };
 
   const handleLoginOrRegister = async () => {
     try {
-      // 1. Autenticar ou registrar
       let userCredential;
+
       try {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
       } catch (loginError) {
@@ -35,7 +34,6 @@ export default function Login() {
         }
       }
 
-      // 2. Esperar pela walletAddress sincronizar
       await waitForWallet();
 
       if (!walletAddress) {
@@ -45,7 +43,6 @@ export default function Login() {
 
       const uid = userCredential.user.uid;
 
-      // 3. Salvar no Firestore
       await setDoc(doc(db, 'users', uid), {
         email,
         wallet: walletAddress,
