@@ -1,30 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useWalletContext } from '../contexts/WalletContext';
 import { db } from '../firebase/firebaseConfig';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 
 export default function Dashboard() {
   const { walletAddress } = useWalletContext();
+  const [user, setUser] = useState(null);
   const [signals, setSignals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roi, setRoi] = useState(0);
   const [referrals, setReferrals] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
-  const auth = getAuth();
-  const user = auth.currentUser;
   const navigate = useNavigate();
+
+  // Monitorar estado de autenticação
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setCheckingAuth(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Proteção de rota
   useEffect(() => {
-    if (!user || !walletAddress) {
+    if (!checkingAuth && (!user || !walletAddress)) {
       navigate('/login');
     }
-  }, [user, walletAddress]);
+  }, [user, walletAddress, checkingAuth]);
 
-  // Buscar sinais recebidos pela carteira
+  // Buscar sinais
   const fetchSignals = async () => {
     if (!walletAddress) return;
 
@@ -55,7 +65,7 @@ export default function Dashboard() {
     }
   };
 
-  // Verificar se usuário é premium
+  // Verificar plano premium
   const checkPremiumStatus = async () => {
     if (!user) return;
     try {
@@ -69,7 +79,7 @@ export default function Dashboard() {
     }
   };
 
-  // Simular ROI com bônus
+  // Simular ROI
   const simulateROI = (data) => {
     let total = 0;
     data.forEach(signal => {
@@ -89,6 +99,11 @@ export default function Dashboard() {
       checkPremiumStatus();
     }
   }, [walletAddress, user]);
+
+  // Prevenção de render prematuro
+  if (checkingAuth) {
+    return <div className="text-white p-8">Checking authentication...</div>;
+  }
 
   return (
     <div className="p-8 text-white">
