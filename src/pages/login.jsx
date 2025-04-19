@@ -1,130 +1,91 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth } from 'firebase/auth';
-import { useWalletContext } from '../contexts/WalletContext';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { useWalletContext } from '../contexts/WalletContext';
 
-export default function Dashboard() {
-  const { walletAddress } = useWalletContext();
-  const [signals, setSignals] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [roi, setRoi] = useState(0);
-  const [referrals, setReferrals] = useState(0);
-  const [isPremium, setIsPremium] = useState(false);
-
-  const auth = getAuth();
-  const user = auth.currentUser;
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { walletAddress, connectWallet } = useWalletContext();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!user || !walletAddress) {
-      navigate('/login');
-    }
-  }, [user, walletAddress]);
+  const auth = getAuth();
 
-  // Buscar sinais recebidos pela carteira
-  const fetchSignals = async () => {
-    if (!walletAddress) return;
-
+  const handleLoginOrRegister = async () => {
     try {
-      const q = query(collection(db, "signals"), where("walletOrigin", "==", walletAddress));
-      const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => doc.data());
+      let userCredential;
 
-      setSignals(data);
-      simulateROI(data);
-    } catch (error) {
-      console.error("Erro ao buscar sinais:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Buscar quantas pessoas essa carteira indicou
-  const fetchReferrals = async () => {
-    if (!walletAddress) return;
-
-    try {
-      const q = query(collection(db, "wallets"), where("referral", "==", walletAddress));
-      const snapshot = await getDocs(q);
-      setReferrals(snapshot.docs.length);
-    } catch (error) {
-      console.error("Erro ao buscar referidos:", error);
-    }
-  };
-
-  // Verificar se o usuário é premium
-  const checkPremiumStatus = async () => {
-    if (user) {
-      const docRef = doc(db, 'users', user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setIsPremium(docSnap.data().isPremium || false);
+      try {
+        // Tentar logar primeiro
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+      } catch (loginError) {
+        if (loginError.code === 'auth/user-not-found') {
+          // Registrar novo usuário
+          userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        } else {
+          throw loginError;
+        }
       }
+
+      const uid = userCredential.user.uid;
+
+      // Garantir que a carteira esteja conectada
+      if (!walletAddress) {
+        await connectWallet();
+      }
+
+      // Salvar no Firestore
+      await setDoc(doc(db, 'users', uid), {
+        email,
+        wallet: walletAddress,
+        createdAt: serverTimestamp(),
+        isPremium: false
+      }, { merge: true });
+
+      navigate('/dashboard');
+
+    } catch (error) {
+      alert('Erro ao autenticar: ' + error.message);
+      console.error(error);
     }
   };
-
-  // Simular ROI com bônus
-  const simulateROI = (data) => {
-    let total = 0;
-    data.forEach(signal => {
-      const variation = Math.random() * 0.3 - 0.1; // -10% a +20%
-      total += signal.volume * variation;
-    });
-    const bonus = referrals * 0.1;
-    setRoi((total + bonus).toFixed(2));
-  };
-
-  useEffect(() => {
-    if (walletAddress) {
-      fetchSignals();
-      fetchReferrals();
-      checkPremiumStatus();
-    }
-  }, [walletAddress]);
 
   return (
-    <div className="p-8 text-white">
-      <h1 className="text-3xl font-bold text-blue-400 mb-4">📊 Dashboard</h1>
-      {walletAddress ? (
-        <>
-          {!isPremium && (
-            <div className="bg-yellow-800 text-yellow-200 p-4 rounded mb-6">
-              🚫 You are on a free plan. Upgrade to access premium signals.
-            </div>
-          )}
+    <div className="min-h-screen flex items-center justify-center bg-black text-white p-8">
+      <div className="w-full max-w-md bg-gray-900 rounded-xl p-6 shadow-lg">
+        <h1 className="text-2xl font-bold mb-4 text-center">🔐 Login to Global Dollar Signals</h1>
 
-          <p className="mb-4 text-lg">
-            🔐 Connected wallet: <span className="text-green-400">{walletAddress}</span>
-          </p>
-          <p className="mb-2 text-lg">
-            💰 Simulated ROI: <span className={roi >= 0 ? "text-green-400" : "text-red-400"}>{roi} SOL</span>
-          </p>
-          <p className="mb-6 text-md text-yellow-300">
-            🔗 Referrals: {referrals} (+{(referrals * 0.1).toFixed(2)} SOL bonus)
-          </p>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-3 mb-3 rounded bg-gray-800 text-white outline-none"
+        />
 
-          <h2 className="text-2xl font-semibold text-yellow-400 mt-6 mb-2">📥 Signals received</h2>
-          {loading ? (
-            <p>Loading signals...</p>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {signals.map((signal, index) => (
-                <div key={index} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                  <p><strong>Token:</strong> <span className="text-blue-300">{signal.token}</span></p>
-                  <p><strong>Volume:</strong> {signal.volume} SOL</p>
-                  <p><strong>Status:</strong> {signal.status}</p>
-                  <p className="text-sm text-gray-400">Wallet: {signal.walletOrigin}</p>
-                </div>
-              ))}
-              {signals.length === 0 && <p className="text-gray-400">No signals found for this wallet.</p>}
-            </div>
-          )}
-        </>
-      ) : (
-        <p className="text-gray-300">Connect your wallet to access your dashboard.</p>
-      )}
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 mb-3 rounded bg-gray-800 text-white outline-none"
+        />
+
+        <button
+          onClick={handleLoginOrRegister}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded"
+        >
+          🔑 Sign In / Register
+        </button>
+
+        {walletAddress && (
+          <p className="text-sm text-green-400 mt-3 text-center">
+            ✅ Wallet connected: {walletAddress}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
