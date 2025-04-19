@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useMemo,
   useState,
-  useCallback,
 } from "react";
 import {
   ConnectionProvider,
@@ -16,8 +15,8 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import {
   WalletModalProvider,
-  useWallet,
 } from "@solana/wallet-adapter-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { clusterApiUrl } from "@solana/web3.js";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
