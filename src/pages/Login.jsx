@@ -4,12 +4,11 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'fire
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebaseConfig';
 import { useWalletContext } from '../contexts/WalletContext';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { walletAddress } = useWalletContext();
+  const { walletAddress, connectWallet } = useWalletContext();
   const navigate = useNavigate();
 
   const handleLoginOrRegister = async () => {
@@ -28,6 +27,13 @@ export default function Login() {
 
       const uid = userCredential.user.uid;
 
+      // Aguarda até 1 segundo para garantir que o walletAddress foi sincronizado
+      let attempts = 0;
+      while (!walletAddress && attempts < 5) {
+        await new Promise((res) => setTimeout(res, 200));
+        attempts++;
+      }
+
       if (!walletAddress) {
         alert('Please connect your wallet before continuing.');
         return;
@@ -37,7 +43,7 @@ export default function Login() {
         email,
         wallet: walletAddress,
         createdAt: serverTimestamp(),
-        isPremium: false,
+        isPremium: false
       }, { merge: true });
 
       navigate('/dashboard');
@@ -67,10 +73,6 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-3 mb-3 rounded bg-gray-800 text-white outline-none"
         />
-
-        <div className="mb-4 text-center">
-          <WalletMultiButton />
-        </div>
 
         <button
           onClick={handleLoginOrRegister}
