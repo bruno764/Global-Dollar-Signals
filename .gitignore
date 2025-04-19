@@ -8,6 +8,8 @@ package-lock.json
 # Build
 dist/
 
+firebase-service-account.json
+
 # VSCode e sistema
 .vscode/
 .DS_Store
