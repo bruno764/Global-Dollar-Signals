@@ -1,27 +1,23 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Leaderboard from './pages/Leaderboard';
 import Premium from './pages/Premium';
 import TopWallets from './pages/TopWallets';
-import Login from './pages/Login'; // 🔥 ADICIONADO
+import Login from './pages/Login'; // <- adicione isso se ainda não estiver lá
 
-function App() {
+export default function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-black text-white">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} /> {/* 🔥 ADICIONADO */}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/premium" element={<Premium />} />
-          <Route path="/top-wallets" element={<TopWallets />} />
-        </Routes>
-      </div>
-    </Router>
+    <div className="min-h-screen bg-black text-white">
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/premium" element={<Premium />} />
+        <Route path="/top-wallets" element={<TopWallets />} />
+        <Route path="/login" element={<Login />} /> {/* Adicione essa rota se necessário */}
+      </Routes>
+    </div>
   );
 }
-
-export default App;
