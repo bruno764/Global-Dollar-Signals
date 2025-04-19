@@ -13,11 +13,18 @@ export default function Login() {
   const { walletAddress } = useWalletContext();
   const navigate = useNavigate();
 
+  const waitForWallet = async () => {
+    let tries = 0;
+    while (!walletAddress && tries < 10) {
+      await new Promise((res) => setTimeout(res, 200));
+      tries++;
+    }
+  };
+
   const handleLoginOrRegister = async () => {
     try {
-      let userCredential;
-
       // 1. Autenticar ou registrar
+      let userCredential;
       try {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
       } catch (loginError) {
@@ -28,13 +35,15 @@ export default function Login() {
         }
       }
 
-      const uid = userCredential.user.uid;
+      // 2. Esperar pela walletAddress sincronizar
+      await waitForWallet();
 
-      // 2. Validar carteira conectada
       if (!walletAddress) {
         alert('Please connect your wallet before continuing.');
         return;
       }
+
+      const uid = userCredential.user.uid;
 
       // 3. Salvar no Firestore
       await setDoc(doc(db, 'users', uid), {
