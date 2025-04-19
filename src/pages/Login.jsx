@@ -1,20 +1,23 @@
+// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebaseConfig';
 import { useWalletContext } from '../contexts/WalletContext';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { walletAddress, connectWallet } = useWalletContext();
+  const { walletAddress } = useWalletContext();
   const navigate = useNavigate();
 
   const handleLoginOrRegister = async () => {
     try {
       let userCredential;
 
+      // 1. Autenticar ou registrar
       try {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
       } catch (loginError) {
@@ -27,18 +30,13 @@ export default function Login() {
 
       const uid = userCredential.user.uid;
 
-      // Aguarda até 1 segundo para garantir que o walletAddress foi sincronizado
-      let attempts = 0;
-      while (!walletAddress && attempts < 5) {
-        await new Promise((res) => setTimeout(res, 200));
-        attempts++;
-      }
-
+      // 2. Validar carteira conectada
       if (!walletAddress) {
         alert('Please connect your wallet before continuing.');
         return;
       }
 
+      // 3. Salvar no Firestore
       await setDoc(doc(db, 'users', uid), {
         email,
         wallet: walletAddress,
@@ -73,6 +71,10 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-3 mb-3 rounded bg-gray-800 text-white outline-none"
         />
+
+        <div className="flex justify-center mb-4">
+          <WalletMultiButton className="bg-purple-700 hover:bg-purple-800 rounded-lg px-4 py-2 text-white" />
+        </div>
 
         <button
           onClick={handleLoginOrRegister}
