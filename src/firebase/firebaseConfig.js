@@ -1,16 +1,20 @@
+// firebase/firebaseConfig.js
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
+  apiKey: "AIzaSyBTmae8tR15vKA_19Bzq7oDFLotMm1PAGs",
   authDomain: "global-dollar-signals.firebaseapp.com",
   projectId: "global-dollar-signals",
-  storageBucket: "global-dollar-signals.appspot.com",
+  storageBucket: "global-dollar-signals.firebasestorage.app",
   messagingSenderId: "905350980131",
-  appId: "1:905350980131:web:1b7f45172347260e524796"
+  appId: "1:905350980131:web:1b7f45172347260e524796",
+  measurementId: "G-CK3HQMBME4"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
 export const db = getFirestore(app);
 export const auth = getAuth(app);
