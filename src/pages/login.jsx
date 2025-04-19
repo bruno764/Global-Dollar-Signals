@@ -17,7 +17,6 @@ export default function Dashboard() {
   const user = auth.currentUser;
   const navigate = useNavigate();
 
-  // Proteção de rota
   useEffect(() => {
     if (!user || !walletAddress) {
       navigate('/login');
@@ -42,7 +41,7 @@ export default function Dashboard() {
     }
   };
 
-  // Buscar referidos
+  // Buscar quantas pessoas essa carteira indicou
   const fetchReferrals = async () => {
     if (!walletAddress) return;
 
@@ -55,17 +54,14 @@ export default function Dashboard() {
     }
   };
 
-  // Verificar se usuário é premium
+  // Verificar se o usuário é premium
   const checkPremiumStatus = async () => {
-    if (!user) return;
-    try {
+    if (user) {
       const docRef = doc(db, 'users', user.uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setIsPremium(docSnap.data().isPremium || false);
       }
-    } catch (error) {
-      console.error("Erro ao verificar premium:", error);
     }
   };
 
@@ -73,7 +69,7 @@ export default function Dashboard() {
   const simulateROI = (data) => {
     let total = 0;
     data.forEach(signal => {
-      const variation = Math.random() * 0.3 - 0.1;
+      const variation = Math.random() * 0.3 - 0.1; // -10% a +20%
       total += signal.volume * variation;
     });
     const bonus = referrals * 0.1;
@@ -84,11 +80,9 @@ export default function Dashboard() {
     if (walletAddress) {
       fetchSignals();
       fetchReferrals();
-    }
-    if (user) {
       checkPremiumStatus();
     }
-  }, [walletAddress, user]);
+  }, [walletAddress]);
 
   return (
     <div className="p-8 text-white">
@@ -97,9 +91,10 @@ export default function Dashboard() {
         <>
           {!isPremium && (
             <div className="bg-yellow-800 text-yellow-200 p-4 rounded mb-6">
-              🚫 You are on a free plan. Upgrade to access premium features.
+              🚫 You are on a free plan. Upgrade to access premium signals.
             </div>
           )}
+
           <p className="mb-4 text-lg">
             🔐 Connected wallet: <span className="text-green-400">{walletAddress}</span>
           </p>
