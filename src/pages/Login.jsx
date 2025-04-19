@@ -1,8 +1,9 @@
+// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { db, auth } from '../firebase/firebaseConfig';
 import { useWalletContext } from '../contexts/WalletContext';
 
 export default function Login() {
@@ -11,18 +12,14 @@ export default function Login() {
   const { walletAddress, connectWallet } = useWalletContext();
   const navigate = useNavigate();
 
-  const auth = getAuth();
-
   const handleLoginOrRegister = async () => {
     try {
       let userCredential;
 
       try {
-        // Tentar logar primeiro
         userCredential = await signInWithEmailAndPassword(auth, email, password);
       } catch (loginError) {
         if (loginError.code === 'auth/user-not-found') {
-          // Registrar novo usuário
           userCredential = await createUserWithEmailAndPassword(auth, email, password);
         } else {
           throw loginError;
@@ -31,12 +28,10 @@ export default function Login() {
 
       const uid = userCredential.user.uid;
 
-      // Garantir que a carteira esteja conectada
       if (!walletAddress) {
         await connectWallet();
       }
 
-      // Salvar no Firestore
       await setDoc(doc(db, 'users', uid), {
         email,
         wallet: walletAddress,
@@ -45,7 +40,6 @@ export default function Login() {
       }, { merge: true });
 
       navigate('/dashboard');
-
     } catch (error) {
       alert('Erro ao autenticar: ' + error.message);
       console.error(error);
