@@ -1,24 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebaseConfig';
-import { useWalletContext } from '../contexts/WalletContext';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { walletAddress } = useWalletContext();
   const navigate = useNavigate();
-
-  const waitForWallet = async () => {
-    let tries = 0;
-    while (!walletAddress && tries < 10) {
-      await new Promise((res) => setTimeout(res, 300));
-      tries++;
-    }
-  };
 
   const handleLoginOrRegister = async () => {
     try {
@@ -34,18 +23,10 @@ export default function Login() {
         }
       }
 
-      await waitForWallet();
-
-      if (!walletAddress) {
-        alert('Please connect your wallet before continuing.');
-        return;
-      }
-
       const uid = userCredential.user.uid;
 
       await setDoc(doc(db, 'users', uid), {
         email,
-        wallet: walletAddress,
         createdAt: serverTimestamp(),
         isPremium: false
       }, { merge: true });
@@ -78,22 +59,12 @@ export default function Login() {
           className="w-full p-3 mb-3 rounded bg-gray-800 text-white outline-none"
         />
 
-        <div className="flex justify-center mb-4">
-          <WalletMultiButton className="bg-purple-700 hover:bg-purple-800 rounded-lg px-4 py-2 text-white" />
-        </div>
-
         <button
           onClick={handleLoginOrRegister}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded"
         >
           🔑 Sign In / Register
         </button>
-
-        {walletAddress && (
-          <p className="text-sm text-green-400 mt-3 text-center">
-            ✅ Wallet connected: {walletAddress}
-          </p>
-        )}
       </div>
     </div>
   );
